@@ -20,7 +20,7 @@ NmfModels <- lapply(nmfComponents, function(x) {
 models <- lapply(NmfModels, summary)
 
 #Pull p-values
-p <- sapply(NmfModels, function(v) summary(v)$p.table[4,4])
+p <- sapply(NmfModels, function(v) summary(v)$p.table[6,4])
 
 #Convert to data frame
 p <- as.data.frame(p)
