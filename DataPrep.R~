@@ -31,9 +31,6 @@ gestAge2 $ preterm [which( gestAge2 $ ga < 37 )]<- 1
 #Transform the age variable from months to years
 demo$age <- (demo$ageAtScan1)/12
 
-#Define age squared (de-mean age)
-demo$ageSq <- I(scale(demo$age, scale=FALSE, center=TRUE)^2)
-
 #Recode male as 0 and female as 1
 demo$sex[which(demo$sex==1)] <- 0
 demo$sex[which(demo$sex==2)] <- 1

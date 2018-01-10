@@ -1,0 +1,111 @@
+###############################
+### Load data and libraries ###
+###############################
+
+subjData <- read.csv("/data/joy/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData.csv", header=TRUE, na.strings = "NA")
+
+#Load libraries
+library(mgcv)
+
+########################
+#### Cognition = ga ####
+########################
+
+#Get cognition variable names
+cogMeasures <- c("Overall_Accuracy","F1_Exec_Comp_Res_Accuracy","F2_Social_Cog_Accuracy","F3_Memory_Accuracy")
+
+#Run gam models
+cogModels <- lapply(cogMeasures, function(x) {
+  gam(substitute(i ~ s(age) + sex + medu1 + ga, list(i = as.name(x))), method="REML", data = subjData)
+})
+
+#Look at model summaries
+models <- lapply(cogModels, summary)
+
+#Pull p-values
+p <- sapply(cogModels, function(v) summary(v)$p.table[4,4])
+
+#Convert to data frame
+p <- as.data.frame(p)
+
+#Print original p-values to three decimal places
+p_round <- round(p,3)
+
+#FDR correct p-values
+pfdr <- p.adjust(p[,1],method="fdr")
+
+#Convert to data frame
+pfdr <- as.data.frame(pfdr)
+
+#To print fdr-corrected p-values to three decimal places
+pfdr_round <- round(pfdr,3)
+
+
+##############################
+#### Cognition = ga * NMF ####
+##############################
+
+#Get NMF variable names
+nmfComponents <- names(subjData)[grep("Nmf26",names(subjData))]
+
+cogModels_gaNMF <- lapply(nmfComponents, function(x) {
+  gam(substitute(F1_Exec_Comp_Res_Accuracy ~ s(age) + sex + medu1 + ga + i + ga*i, list(i = as.name(x))), method="REML", data = subjData)
+})
+
+#Look at model summaries
+models_gaNMF <- lapply(cogModels_gaNMF, summary)
+
+
+##############################
+#### NMF = ga * cognition ####
+##############################
+
+#Load data
+data.NMF <- read.csv("/data/joy/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData.csv", header=TRUE, na.strings = "NA")
+
+#Load library
+library(mgcv)
+
+#Get NMF variable names
+nmfComponents <- names(data.NMF)[grep("Nmf26",names(data.NMF))]
+
+#Run gam models
+NmfModels <- lapply(nmfComponents, function(x) {
+  gam(substitute(i ~ s(age) + sex + medu1 + ga + ga*, list(i = as.name(x))), method="REML", data = data.NMF)
+})
+
+#Look at model summaries
+models <- lapply(NmfModels, summary)
+
+#Pull p-values
+p <- sapply(NmfModels, function(v) summary(v)$p.table[4,4])
+
+#Convert to data frame
+p <- as.data.frame(p)
+
+#Print original p-values to three decimal places
+p_round <- round(p,3)
+
+#FDR correct p-values
+pfdr <- p.adjust(p[,1],method="fdr")
+
+#Convert to data frame
+pfdr <- as.data.frame(pfdr)
+
+#To print fdr-corrected p-values to three decimal places
+pfdr_round <- round(pfdr,3)
+
+#List the NMF components that survive FDR correction
+Nmf_fdr <- row.names(pfdr)[pfdr<0.05]
+
+###############################
+#### AGE BY GA INTERACTION ####
+###############################
+
+#Run gam models
+gaAgeInteraction <- lapply(nmfComponents, function(x) {
+  gam(substitute(i ~ s(age) + sex + medu1 + ga + ga*age, list(i = as.name(x))), method="REML", data = data.NMF)
+})
+
+#Look at model summaries
+summaries <- lapply(gaAgeInteraction, summary)

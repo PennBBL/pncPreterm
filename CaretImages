@@ -1,0 +1,89 @@
+##################################################
+#### MAKE PUBLICATION QUALITY IMAGES IN CARET ####
+##################################################
+
+#NOTE: These instructions were written for NMF files, so might differ for your files.
+
+1. Download caret
+
+http://brainvis.wustl.edu/wiki/index.php/Caret:Download
+
+2. Download the templates Ted likes to use (see my email). Put them here:
+
+/Applications/caret/data_files/standard_mesh_atlases/
+
+in a new folder called "standard_mesh_atlases_TED" so you don't overwrite the default templates.
+
+3. Warp your InputFile.nii.gz file (the file with your clusters) into MNI space for caret:
+
+antsApplyTransforms -e 3 -d 3 -r /share/apps/fsl/5.0.8/data/standard/MNI152_T1_1mm_brain.nii.gz -o OutputFile.nii.gz -i InputFile.nii.gz -t /data/joy/BBL/studies/pnc/template/pnc2mni0Warp.nii.gz -t /data/joy/BBL/studies/pnc/template/pnc2mni1GenericAffine.mat
+
+4. Use sftp to download the MNI file to the local computer (the files will be in Machintosh HD/Users/username or look for them in "All My Files").
+    get filepath/filename.nii.gz
+
+5. Open Caret (Applications/caret/bin_macosx64/caret5)
+   a. If opening a spec file for the first time:
+      1. Go to File -> Open Spec file...
+      2. Computer/Applications/caret/data_files/standard_mesh_atlases/standard_mesh_atlases_TED/Human.PALS.LEFT
+      3. Load
+   b. Or if you have already opened a spec file before:
+      1. File -> Open recent Spec file -> /standard_mesh_atlases_TED/Human.PALS.LEFT
+      2. Load
+   c. Go to Attributes -> Map volume(s) to surface(s)
+      1. Choose Metric -> Next
+      2. Add Volume from disk
+         a. Navigate to where you saved your MNI nii.gz file
+         b. Choose that file
+         c. Open
+         d. Next
+      3. Map to caret with atlas
+         a. Space: Choose FLIRT
+         b. Atlas: Choose the hemisphere that matches the spec file you loaded (LEFT hemisphere).
+         c. Only select "Show Mapping to Average Fiducial Surface" (the first button).
+         d. Okay
+         e. Next
+      4. Data File naming
+         a. Don't change anything
+         b. Next
+      5. Mapping Algorithm
+         a. Choose: METRIC_MAXIMUM_VOXEL
+         b. Next
+         c. Finish
+         d. Wait for the summary box to appear. Close.
+   d. On the caret diaglog box:
+      1. Click on D/C
+      2. Primary Overlay, Data type: Choose Metric.
+      3. Use the M and L buttons at the top of the screen to switch views quickly.
+      4. At the top of the D/C page, change Page Selection to Metric Settings
+         a. Click on User scale, play with Pos Min/Max to get a good view of the clusters (ask Ted for range to use)
+         b. Change color palette, if desired
+         c. Display mode = Positive, Negative, or Both (depends if you have positive and negative results)
+         d. Check the box "Display color bar"
+   e. Capture high resolution pictures:
+      1. Once you are happy with the settings above, go to:
+         a. File
+         b. Capture image of window
+         c. Check "Popup Dialogue to Adjust Captured Image Size"
+         d. Check "Save to File"
+         e. Click on "Name..."
+         f. Navigate to folder where you want to save the image and name it. Choose Save to close window.
+         g. Click on "Capture"
+         h. When the image size box appears, change resolution to 300 Pixels/inch and choose OK.
+         i. File should be saved in the folder you specified. 
+
+
+###################################################################
+#### REMOVE BLACK BACKGROUND AND ADD DROP SHADOWS IN PHOTOSHOP ####
+###################################################################
+
+1. Open Photoshop. File -> Open saved screen shot of caret brain image
+2. File -> New -> Preset: yourFile.png; Background Contents: White -> Okay
+3. Choose "Quick selection tool" and click on black background until all background is selected.
+4. Command-shift-i to select brain only
+5. Command-c to copy
+6. Command-v to paste brain into new blank document
+7. Control-click on Layer 1 in Layers list (box on right side)
+8. Blending options -> Click on Drop Shadow checkbox under Styles, also click on the word "Drop Shadow"" for options page to open
+9. Distance = 100, Spread = 33, Size = 100; Okay to apply changes
+10. Layer -> Flatten image
+11. File -> Save as a .jpg or other type of file

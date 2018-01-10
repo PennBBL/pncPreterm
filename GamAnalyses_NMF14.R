@@ -3,13 +3,13 @@
 ##########################################
 
 #Load data
-data.NMF <- read.csv("/data/joy/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData.csv", header=TRUE, na.strings = "NA")
+data.NMF <- read.csv("/data/joy/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData_NMF14.csv", header=TRUE, na.strings = "NA")
 
 #Load library
 library(mgcv)
 
 #Get NMF variable names
-nmfComponents <- names(data.NMF)[grep("Nmf26",names(data.NMF))]
+nmfComponents <- names(data.NMF)[grep("Nmf14",names(data.NMF))]
 
 #Run gam models
 NmfModels <- lapply(nmfComponents, function(x) {
@@ -40,14 +40,3 @@ pfdr_round <- round(pfdr,3)
 #List the NMF components that survive FDR correction
 Nmf_fdr <- row.names(pfdr)[pfdr<0.05]
 
-###############################
-#### AGE BY GA INTERACTION ####
-###############################
-
-#Run gam models
-gaAgeInteraction <- lapply(nmfComponents, function(x) {
-  gam(substitute(i ~ s(age) + sex + medu1 + ga + ga*age, list(i = as.name(x))), method="REML", data = data.NMF)
-})
-
-#Look at model summaries
-summaries <- lapply(gaAgeInteraction, summary)

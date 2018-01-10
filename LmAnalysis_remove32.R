@@ -1,26 +1,30 @@
-##########################################
-#### GAM MODELS FOR PREMATURITY STUDY ####
-##########################################
+#########################################
+#### LM MODELS FOR PREMATURITY STUDY ####
+#########################################
 
 #Load data
 data.NMF <- read.csv("/data/joy/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData.csv", header=TRUE, na.strings = "NA")
 
-#Load library
-library(mgcv)
+#Create an exclusion variable for those who are Early or Very Preterm
+data.NMF$LateModeratePreterm <- 1
+data.NMF$LateModeratePreterm[which(data.NMF$ga<32)]<- 0
+
+#Remove those who are Early or Very Preterm
+data.NMF <- data.NMF[which(data.NMF$LateModeratePreterm==1),]
 
 #Get NMF variable names
 nmfComponents <- names(data.NMF)[grep("Nmf26",names(data.NMF))]
 
 #Run gam models
 NmfModels <- lapply(nmfComponents, function(x) {
-  gam(substitute(i ~ s(age) + sex + medu1 + ga, list(i = as.name(x))), method="REML", data = data.NMF)
+  lm(substitute(i ~ age + ageSq + sex + medu1 + ga, list(i = as.name(x))), data = data.NMF)
 })
 
 #Look at model summaries
 models <- lapply(NmfModels, summary)
 
 #Pull p-values
-p <- sapply(NmfModels, function(v) summary(v)$p.table[4,4])
+p <- sapply(NmfModels, function(v) summary(v)$coefficients[6,4])
 
 #Convert to data frame
 p <- as.data.frame(p)
@@ -39,15 +43,3 @@ pfdr_round <- round(pfdr,3)
 
 #List the NMF components that survive FDR correction
 Nmf_fdr <- row.names(pfdr)[pfdr<0.05]
-
-###############################
-#### AGE BY GA INTERACTION ####
-###############################
-
-#Run gam models
-gaAgeInteraction <- lapply(nmfComponents, function(x) {
-  gam(substitute(i ~ s(age) + sex + medu1 + ga + ga*age, list(i = as.name(x))), method="REML", data = data.NMF)
-})
-
-#Look at model summaries
-summaries <- lapply(gaAgeInteraction, summary)

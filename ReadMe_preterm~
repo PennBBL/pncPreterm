@@ -1,0 +1,286 @@
+########################################
+#### DATA PREP FOR PREMATURITY DATA ####
+########################################
+1. Use the script "DataPrep.R" to preprocess the data. This script will:
+   a. Load all data files
+   b. Remove those missing gestational age data
+   c. Create the preterm group (<37 weeks gestation)
+   d. Transform age from months to years
+   e. Recode male as 0 and female as 1
+   f. Define the white vs nonwhite groups
+   g. Merge the data files
+   h. Exclude based on healthExcludev2 and t1Exclude (and calculate how many are missing at each step)
+   i. Save the .csv file
+   j. Save the list of the bblids and scanids for the final sample (n=282)
+   k. Calculate how many were on psychiatric psychotropic medications at the time of scanning.
+   l. Exclude those on psychiatric psychotropic meds and save as a separate data file for sensitivity analyses.
+
+
+###########################################
+#### NMF ANALYSES FOR PREMATURITY DATA ####
+###########################################
+
+1. Look for missing data using the script, "FindMissingRavens.sh".
+2. Smooth the Ravens data (8mm FWHM) and save the filenames into text files for zipping the data using the script, "Smooth_Ravens.sh"
+   a. To check that the correct number of smoothed files are in the directory: ls -1 | wc -l
+3. Zip the files using the script "ZipFiles.sh".
+4. Then copy them to CBICA
+      ssh kaczkura@cbica-cluster.uphs.upenn.edu
+      sudo -u pncnmf sudosh
+      scp -r akaczkurkin@chead.uphs.upenn.edu:/data/joy/BBL/projects/pncPreterm/images/n282_RavensData_smoothed8mm.tar.gz /cbica/projects/pncNmf/n282_preterm/images/Ravens_datafiles_smoothed8mm
+5. Extract the files (can also delete the tar file)
+      tar -xvf n282_RavensData_smoothed8mm.tar.gz
+      rm n282_RavensData_smoothed8mm.tar.gz
+      ls -1 | wc -l
+6. Permissions
+      1. If you need to allow others permission to access the directory, use:
+      chmod 777 Ravens_datafiles_smoothed8mm/
+7. Copy the list of bblids and scanids from chead to cbica.
+      scp -r akaczkurkin@chead.uphs.upenn.edu:/data/joy/BBL/projects/pncPreterm/subjectData/n282_nassarPrematurity_bblids_scanids.csv /cbica/projects/pncNmf/n282_preterm/subjectData
+8. Create a text file with the image paths on CBICA. See script "GetFilePaths.sh" on cbica.
+9. Copy the mask from chead to cbica
+      scp -r akaczkurkin@chead.uphs.upenn.edu:/data/joy/BBL/studies/pnc/n1601_dataFreeze/neuroimaging/pncTemplate/priors/prior_grey_thr01_2mm.nii.gz /cbica/projects/pncNmf/n282_preterm/masks
+10. Run the sge commands for submit_script_extractBasesMT.sh using the following script "Run_NMF_nassarPrematurity.sh" to set up and run this script for multiple components.
+    a. Be sure to check that the output directory for the error files is correctly specified in this script.
+11. Look at the results on cbica
+    cd /cbica/projects/pncNmf/n282_preterm/results/
+    fslview /cbica/home/kaczkura/pncAslAcrossDisorder/NMF/images/pnc_template_brain_2mm.nii.gz $(for i in {1..26}; do echo `ls NumBases26/OPNMF/niiImg/Basis_${i}.nii ` -b 0.004,0.04 -l Hot ; done) &
+12. Calculate reconstruction error:
+   a. After running a range of components (2-30, evens), you need to calculate the reconstruction error to help you to determine the ideal number of components to use.
+         ssh -Y kaczkura@cbica-cluster.uphs.upenn.edu
+               sudo -u pncnmf sudosh
+         cd /cbica/projects/pncNmf/n282_preterm/scripts
+         matlab -nodesktop
+         addpath('/sbia/sbiasfw/external/matlab/extras/nifti/20130306/')
+         calcRecError
+   b. The script will run for a few minutes and then the reconstruction error figures will be saved as .png files in the scripts folder.
+   c. Move the gradient figures to chead (since sudo doesn't allow -Y to see figures):
+      scp reconstructionError_preterm.png akaczkurkin@chead.uphs.upenn.edu:/data/joy/BBL/projects/pncPreterm/tablesFigures
+      scp reconstructionErrorGradient_preterm.png akaczkurkin@chead.uphs.upenn.edu:/data/joy/BBL/projects/pncPreterm/tablesFigures
+   d. Use firefox to view on chead and sftp to copy them to local computer.
+   e. We calculate the reconstruction error as the Frobenius between the data and the estimated non-negative approximation. 
+      1. At the end, two figures are produced. The first gives the reconstruction error as a function of the estimated number of components, while the second one gives its gradient. 
+      2. Look at the gradient plot (the one increasing): the aim is to find the "elbow" of the plot, i.e., when the change seems to saturate. This is your ideal number of components.
+13. Once you've decided on the ideal component number, update the script "formatNmfData.m" to convert the .mat output to .csv where each component equals one column (the output will be in results/NumBases26/OPNMF).
+    cd /cbica/projects/pncNmf/n282_preterm/scripts
+    matlab -nodesktop
+    formatNmfData
+    exit
+14. Add bblid names to the .csv file
+    a. Aris says it is safe to assume that the output file is in the exact same order as the bblid list used to run NMF.
+       1. Use cbind to combine the bblids and results using the script "Add_bblids.R".
+15. Copy to chead
+      scp NmfResults26Bases_bblids.csv akaczkurkin@chead.uphs.upenn.edu:/data/joy/BBL/projects/pncPreterm/subjectData
+16. Merge the NMF and subject data with the script on chead, "MergeNmfSubjData.R".
+17. Copy the .csv file to the local computer (for sharing with Rula)
+      sftp chead
+      get /data/joy/BBL/projects/pncPreterm/subjectData/n282_Prematurity_allData.csv
+18. Run the gam models and FDR correct the p-values using the script "GamAnalyses.R".
+
+
+######################################################
+#### MAKE PUBLICATION QUALITY NMF IMAGES IN CARET ####
+######################################################
+
+1. Zip the NMF component files
+    ssh kaczkura@cbica-cluster.uphs.upenn.edu
+    sudo -u pncnmf sudosh
+    cd /cbica/projects/pncNmf/n282_preterm/results/NumBases26/OPNMF/niiImg
+    tar -cvf NMF26components.tar.gz Basis_*
+
+2. Copy the files to chead
+    scp -r NMF26components.tar.gz akaczkurkin@chead.uphs.upenn.edu:/data/joy/BBL/projects/pncPreterm/results
+
+3. Unzip the files
+    tar -xvf NMF26components.tar.gz
+    
+4. Look at the results
+    fslview /data/joy/BBL/studies/pnc/template/pnc_template_brain_2mm.nii.gz $(for i in {1..26}; do echo `ls Basis_${i}.nii ` -b 0.004,0.04 -l Hot ; done) &
+
+5. Warp your NMF component .nii files into MNI space for caret:
+   a. Use the script "WarpEachToMNI.sh"
+
+6. Use sftp to download the MNI space files to the local computer (the files will be in Machintosh HD/Users/antoniak or look for them in "All My Files").
+    get /data/joy/BBL/projects/pncPreterm/results/EachComponentWarpedToMNI/NMF*
+
+7. Open Caret (Applications/caret/bin_macosx64/caret5)
+   a. If opening a spec file for the first time:
+      1. Go to File -> Open Spec file...
+      2. Computer/Applications/caret/data_files/standard_mesh_atlases/standard_mesh_atlases_TED/Human.PALS.LEFT
+      3. Load
+   b. Or if you have already opened a spec file before:
+      1. File -> Open recent Spec file -> /standard_mesh_atlases_TED/Human.PALS.LEFT
+      2. Load
+   c. Go to Attributes -> Map volume(s) to surface(s)
+      1. Choose Metric -> Next
+      2. Add Volume from disk
+         a. Navigate to where you saved the NMF nii files
+         b. Choose the NMF_1.nii file
+         c. Open
+         d. Next
+      3. Map to caret with atlas
+         a. Space: Choose FLIRT
+         b. Atlas: Choose the hemisphere that matches the spec file you loaded (LEFT hemisphere).
+         c. Only select "Show Mapping to Average Fiducial Surface" (the first button).
+         d. Okay
+         e. Next
+      4. Data File naming
+         a. Don't change anything
+         b. Next
+      5. Mapping Algorithm
+         a. Choose: METRIC_MAXIMUM_VOXEL
+         b. Next
+         c. Finish
+         d. Wait for the summary box to appear. Close.
+   d. On the caret diaglog box:
+      1. Click on D/C
+      2. Primary Overlay, Data type: Choose Metric.
+      3. Use the M and L buttons at the top of the screen to switch views quickly.
+      4. At the top of the D/C page, change Page Selection to Metric Settings
+         a. Click on User scale, play with Pos Min/Max to get a good view of the clusters (ask Ted for range to use); For NMF, I used .009 and .04.
+         b. Change color palette, if desired
+         c. Display mode = Positive, Negative, or Both (depends if you have positive and negative results); NMF is positive only.
+         d. Check the box "Display color bar"
+   e. Custom color palettes in caret:
+      1. Go to Attributes
+      2. Palette
+      3. Edit...
+      4. New...
+      5. Give it a name, OK
+      6. Choose either "New Empty Palette" for a blank palette or "Copy Palette" if you are adjusting an existing palette
+      7. Click on the + sign to add rows or - to delete rows.
+      8. Click on the color button (may say "missing" at first) to change colors
+      9. NOTE: the numbers next to the palette color names define the range of the palette. Depending on the data you want to plot, you may need to do trial and error to get these numbers to cover the range of your data.
+      10. When done adjusting colors, take a screen shot (command-shift-4) to document the palette colors and numbers to recreate later. The palette will not be saved when you close Caret or load a new spec file.
+      11. To apply to your image:
+          a. Click on D/C
+          b. Change Page Selection to Metric Settings
+          c. Your palette should now appear in the Palette dropdown menu.
+          d. You may need to choose Positive only if your palette range only contains positive numbers.
+   f. Capture high resolution pictures:
+      1. Once you are happy with the settings above, go to
+         a. File
+         b. Capture image of window
+         c. Check "Popup Dialogue to Adjust Captured Image Size"
+         d. Check "Save to File"
+         e. Click on "Name..."
+         f. Navigate to folder where you want to save the image and name it. Choose Save to close window.
+         g. Click on "Capture"
+         h. When the image size box appears, change resolution to 300 Pixels/inch and choose OK.
+         i. File should be saved in the folder you specified. 
+
+
+
+#######################################################
+#### MAKE A SINGLE FIGURE WITH ALL NMF COMPONENTS ####
+#######################################################
+
+1. Threshold and binarize each image using the script "ThresholdBinarizeNMF.sh". This script will:
+   a. Threshold each Basis_*.nii image output from the NMF analyses at .004 (this threshold value was recommended by Aris).
+   b. Binarize these thresholded images and save separately.
+   c. This has to be done separately because we need both thresholded only images and thresholded/binarized images.
+
+2. Remove small clusters
+   a. Use Adon’s matlab code to remove small clusters.
+      1. Copy the function "returnNumberOfNeighboorhoods" from scripts/ to your results folder /Threshold004Bin
+      2. The input needs to be the thresholded (.004) and binarized images.
+      3. You have to try several different thresholds to make sure it’s not cutting out the main clusters (200, 300, anf 400 are reasonable to try).
+         a. I ultimately went with 400, consistent with Marieta's CT study.
+      4. This produces a binary mask with the remaining clusters
+
+      matlab -nodisplay -nojvm -r "returnNumberOfNeighboorhoods('./Basis_1_thr004Bin.nii.gz', 400); exit;"
+
+      5. mkdir NeighborThresh400 and move the images into this folder
+3. Mask the thresholded (.004) images by the masks you just created using the script "MaskByNeighborThr400.sh".
+4. Warp the masked image into 2mm MNI space for loading in caret using the script "WarpThr400ToMNI.sh".
+5. Merge all NMF component images into a single 4D image 
+   a. NOTE: If you do not have the -1v flag for ls, the images will be merged in the order they are found in the results folder (10, 11, 12, ..., 19, 1, 20, 21, etc.) which is out of order.
+
+fslmerge -t /data/joy/BBL/projects/pncPreterm/results/n282_26NmfComponentsMerged.nii.gz $(ls -1v /data/joy/BBL/projects/pncPreterm/results/MaskedByNeighborThresh400_WarpedToMNI/Basis_*_thr004_maskedByNeighborThr400_2mmMNI.nii.gz)
+
+6. Confirm that components are in the 4D image (Note: If you overlay on a template brain, then you will only see the first component)
+   a. fslview n282_26NmfComponentsMerged.nii.gz
+   b. Click on the "Movie Mode" button to cycle through all 26 components
+      1. NOTE: Each volume = 1 component (they are listed as 0-25, not 1-26 in fslview but this does not affect the CompositeNmfBrainImage.R script).
+7. Warp and binarize the mask using the script "WarpBinMask.sh".
+8. Use the script "CompositeNmfBrainImage.R" to assigning a p-value or t-value to each component for loading into caret.
+   a. NOTE: You will need to run the script "GamAnalyses.R" to see which NMF components you want to plot.
+9. Look at the output
+     cd /data/joy/BBL/projects/pncPreterm/tablesFigures
+     #All 26 components
+     fslview /share/apps/fsl/5.0.8/data/standard/MNI152_T1_2mm_brain.nii.gz NMF_preterm_all26Components.nii.gz -l Random-Rainbow &
+     #Only the components that survive FDR correction
+     fslview /share/apps/fsl/5.0.8/data/standard/MNI152_T1_2mm_brain.nii.gz NMF_preterm_gaFdrComponents.nii.gz -b 2,4.5 -l Red-Yellow &
+10. Use sftp to download the composite image to the local computer (the files will be in Machintosh HD/Users/antoniak or look for it in "All My Files").
+     get /data/joy/BBL/projects/pncPreterm/tablesFigures/NMF_preterm_gaFdrComponents.nii.gz
+11. Load the file "NMF_preterm_gaFdrComponents.nii.gz" in caret as above, except:
+    a. Make Pos Min/Max = 2 and 4.0
+    b. Display mode = Positive
+    c. Check the box "Display color bar"
+    d. Make palette = "clear-brain"
+    e. Include color bar in screen shot
+
+
+############################
+#### MEDIATION ANALYSES ####
+############################
+
+1. To run mediation analyses:
+
+
+
+Use the script "MediationAnalyses.R" to run mediation with bootstrapped confidence intervals in R.
+
+
+#######################################
+#### ADD DROP SHADOWS IN PHOTOSHOP ####
+#######################################
+
+1. File -> Open saved screen shot of caret brain image
+2. File -> New -> Preset: yourFile.png; Background Contents: White -> Okay
+3. Choose "Quick selection tool" and click on black background until all background is selected.
+4. Command-shift-i to select brain only
+5. Command-c to copy
+6. Command-v to paste into new blank document
+7. Control-click on Layer 1 in Layers list (box on right side)
+8. Blending options -> Click on Drop Shadow checkbox under Styles, also click on the word "Drop Shadow"" for options page to open
+9. Distance = 100, Spread = 33, Size = 100; Okay to apply changes
+10. Layer -> Flatten image
+11. File -> Save as a .png file
+
+
+#####################################
+#### COMBINE IMAGES IN PHOTOSHOP ####
+#####################################
+
+1. File -> New -> Preset: US paper (to create an 8.5 by 11 blank doc)
+2. File -> Open brain with shadow
+3. Choose the "Selection tool" (rectangle box), select brain and shadow
+4. Command-C to copy
+5. Command-V to paste into your blank doc
+6. Choose "Move tool" to move brain around
+7. To change size of brain without distorting, press Shift while clicking and dragging on the corner to resize. Then press enter to make change take effect.
+8. Use the "Type tool" to create text boxes
+9. Once you are happy with the arrangement, use the "Crop tool" to crop out any extra white space
+10. File -> Save as as a .psd file (so you can go back and edit later if necessary)
+
+
+##################################
+#### MAKE RING IN ILLUSTRATOR ####
+##################################
+
+1. Open Adobe Illustrator
+2. Open the figure you want to add a circle to
+3. Choose the Shape Tool (if not an elipse, click and hold until the menu pops up to change the shape, or use option+click to change shapes)
+4. While holding the shift key down (to keep the proportion fixed), draw a circle
+5. Click on the color tab (on the menu on the right side of screen). 
+   a. For the Fill box, choose None
+   b. For the Stroke box (outline), choose the color you want
+6. On the menu bar across the top of the screen, change the stroke to make the outline thicker
+7. Use the Selection Tool to move the circle to where you want it on your figure
+8. Click Command+a to select everything
+9. Click on Command+g to group everything
+10. Use the Artboard Tool to change the canvas size
+11. Save as an .ai file
+12. Also can "Save a copy" for a pdf
+

@@ -1,0 +1,98 @@
+x################
+#### ANCOVA ####
+################
+
+#Create a variable with 0=full term, 1=moderately and late preterm, and 2=very and extremely preterm
+#full term
+subjData$fullModExt <- 0
+
+#moderately and late preterm
+subjData$fullModExt[which(subjData$ga<37 )] <- 1
+
+#very and extremely preterm
+subjData$fullModExt[which(subjData$ga<32 )] <- 2
+
+#Make a factor
+subjData$fullModExt <- as.factor(subjData$fullModExt)
+
+#See n per group
+fullModExtTable <- table(subjData$fullModExt)
+
+##ANOVAs to test for overall group differences between the three groups. Use summary(aov1) to see omnibus p-value.
+aov1 <- aov(Nmf26C1 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey1 <- TukeyHSD(aov1, which = 'fullModExt')
+
+aov2 <- aov(Nmf26C2 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey2 <- TukeyHSD(aov2, which = 'fullModExt')
+
+aov3 <- aov(Nmf26C3 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey3 <- TukeyHSD(aov3, which = 'fullModExt')
+
+aov4 <- aov(Nmf26C4 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey4 <- TukeyHSD(aov4, which = 'fullModExt')
+
+aov5 <- aov(Nmf26C5 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey5 <- TukeyHSD(aov5, which = 'fullModExt')
+
+aov6 <- aov(Nmf26C6 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey6 <- TukeyHSD(aov6, which = 'fullModExt')
+
+aov7 <- aov(Nmf26C7 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey7 <- TukeyHSD(aov7, which = 'fullModExt')
+
+aov8 <- aov(Nmf26C8 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey8 <- TukeyHSD(aov8, which = 'fullModExt')
+
+aov9 <- aov(Nmf26C9 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey9 <- TukeyHSD(aov9, which = 'fullModExt')
+
+aov10 <- aov(Nmf26C10 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey10 <- TukeyHSD(aov10, which = 'fullModExt')
+
+aov11 <- aov(Nmf26C11 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey11 <- TukeyHSD(aov11, which = 'fullModExt')
+
+aov12 <- aov(Nmf26C12 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey12 <- TukeyHSD(aov12, which = 'fullModExt')
+
+aov13 <- aov(Nmf26C13 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey13 <- TukeyHSD(aov13, which = 'fullModExt')
+
+aov14 <- aov(Nmf26C14 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey14 <- TukeyHSD(aov14, which = 'fullModExt')
+
+aov15 <- aov(Nmf26C15 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey15 <- TukeyHSD(aov15, which = 'fullModExt')
+
+aov16 <- aov(Nmf26C16 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey16 <- TukeyHSD(aov16, which = 'fullModExt')
+
+aov17 <- aov(Nmf26C17 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey17 <- TukeyHSD(aov17, which = 'fullModExt')
+
+aov18 <- aov(Nmf26C18 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey18 <- TukeyHSD(aov18, which = 'fullModExt')
+
+aov19 <- aov(Nmf26C19 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey19 <- TukeyHSD(aov19, which = 'fullModExt')
+
+aov20 <- aov(Nmf26C20 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey20 <- TukeyHSD(aov20, which = 'fullModExt')
+
+aov21 <- aov(Nmf26C21 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey21 <- TukeyHSD(aov21, which = 'fullModExt')
+
+aov22 <- aov(Nmf26C22 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey22 <- TukeyHSD(aov22, which = 'fullModExt')
+
+aov23 <- aov(Nmf26C23 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey23 <- TukeyHSD(aov23, which = 'fullModExt')
+
+aov24 <- aov(Nmf26C24 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey24 <- TukeyHSD(aov24, which = 'fullModExt')
+
+aov25 <- aov(Nmf26C25 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey25 <- TukeyHSD(aov25, which = 'fullModExt')
+
+aov26 <- aov(Nmf26C26 ~ age + sex + medu1 + fullModExt, data=subjData)
+tukey26 <- TukeyHSD(aov26, which = 'fullModExt')
