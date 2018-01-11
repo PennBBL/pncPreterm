@@ -1,2 +1,2 @@
 # pncPreterm
-Prematurity study
+Prematurity study scripts.
