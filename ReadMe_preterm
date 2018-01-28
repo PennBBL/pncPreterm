@@ -81,12 +81,15 @@
 18. Run the gam models and FDR correct the p-values using the script "GamAnalyses.R".
     a. There are also various sensitivity analysis scripts such as:
        1. GamAnalyses_AvgRating.R
-       2. GamAnalyses_GroupsNoEarly.R
-       3. GamAnalyses_Groups.R
-       4. GamAnalyses_NMF14.R
-       5. GamAnalyses_NoMeds.R
-       6. GamAnalyses_removeExtreme.R
-       7. GamAnalyses_withRace.R
+       2. GamAnalyses_cog.R
+       3. GamAnalyses_GroupsNoEarly.R
+       4. GamAnalyses_Groups.R
+       5. GamAnalyses_jlf.R
+       6. GamAnalyses_NMF14.R
+       7. GamAnalyses_NoMeds.R
+       8. GamAnalyses_removeExtreme.R
+       9. GamAnalyses_withRace.R
+
 
 ######################################################
 #### MAKE PUBLICATION QUALITY NMF IMAGES IN CARET ####
@@ -253,7 +256,8 @@ fslmerge -t /data/joy/BBL/projects/pncPreterm/results/n282_26NmfComponentsMerged
 8. Blending options -> Click on Drop Shadow checkbox under Styles, also click on the word "Drop Shadow"" for options page to open
 9. Distance = 100, Spread = 33, Size = 100; Okay to apply changes
 10. Layer -> Flatten image
-11. File -> Save as a .png file
+11. Select the crop tool and crop closer to the brain
+12. File -> Save as a .png file
 
 
 #####################################

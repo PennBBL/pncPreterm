@@ -3,29 +3,29 @@
 ##########################################
 
 #Load data
-data.NMF <- read.csv("/data/joy/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData.csv", header=TRUE, na.strings = "NA")
+data.NMF <- read.csv("/data/jux/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData.csv", header=TRUE, na.strings = "NA")
 
 ###################################
 #### REMOVE LESS THAN 32 WEEKS ####
 ###################################
 
 ##Define those with gestational age of less than 32 weeks
-data.NMF$exclude32 <- 1
-data.NMF$exclude32[which(data.NMF$ga < 32 )] <- 0
+#data.NMF$exclude32 <- 1
+#data.NMF$exclude32[which(data.NMF$ga < 32 )] <- 0
 
 ##Remove those with ga<32 weeks
-data.subset <- data.NMF[which(data.NMF$exclude32==1),]
+#data.subset <- data.NMF[which(data.NMF$exclude32==1),]
 
 ######################################
 #### OR REMOVE LESS THAN 28 WEEKS ####
 ######################################
 
 ##Define those with gestational age of less than 28 weeks
-#data.NMF$exclude28 <- 1
-#data.NMF$exclude28[which(data.NMF$ga < 28 )] <- 0
+data.NMF$exclude28 <- 1
+data.NMF$exclude28[which(data.NMF$ga < 28 )] <- 0
 
 ##Remove those with ga<28 weeks
-#data.subset <- data.NMF[which(data.NMF$exclude28==1),]
+data.subset <- data.NMF[which(data.NMF$exclude28==1),]
 
 ######################################
 #### OR REMOVE MORE THAN 39 WEEKS ####

@@ -6,10 +6,12 @@
 ### Load data and libraries ###
 ###############################
 
-subjData <- read.csv("/data/joy/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData.csv", header=TRUE, na.strings = "NA")
+#subjData <- read.csv("/data/jux/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData.csv", header=TRUE, na.strings = "NA")
+subjData <- readRDS("/data/jux/BBL/projects/pncPreterm/pncPreterm_old/subjectData/n278_Prematurity_allData.rds")
 
 #Load libraries
 library(plyr)
+library(varhandle)
 
 #################################
 ### Total sample demographics ###
@@ -43,12 +45,14 @@ meanSdAge <- ddply(subjData,~preterm,summarise,mean=mean(age),sd=sd(age))
 meanSdMedu <- ddply(subjData,~preterm,summarise,mean=mean(medu1,na.rm=TRUE),sd=sd(medu1,na.rm=TRUE))
 
 #Percentage of females (0=male, 1=female)
+subjData$sex <- unfactor(subjData$sex)
 percentFemale <- ddply(subjData,~preterm,summarise,mean=mean(sex))
 
 #Or to see the number of males and females in each group
 sexTable <- table(Preterm = subjData$preterm, Sex = subjData$sex)
 
 #Percentage white (0=nonwhite, 1=white)
+subjData$white <- unfactor(subjData$white)
 percentWhite <- ddply(subjData,~preterm,summarise,mean=mean(white))
 
 #Or to see the number of white and nonwhite in each group
@@ -168,6 +172,27 @@ gaAge_corr <- rcorr(subjData$ga, subjData$age)
 #Gestational age correlated with maternal level of education
 medu1_corr <- rcorr(subjData$ga, subjData$medu1)
 
+#Gestational age correlations with psychiatric symptoms
+gaAdd_corr <- rcorr(subjData$ga, subjData$goassessSmryAdd)
+gaAgr_corr <- rcorr(subjData$ga, subjData$goassessSmryAgr)
+gaAno_corr <- rcorr(subjData$ga, subjData$goassessSmryAno)
+gaBul_corr <- rcorr(subjData$ga, subjData$goassessSmryBul)
+gaCon_corr <- rcorr(subjData$ga, subjData$goassessSmryCon)
+gaGad_corr <- rcorr(subjData$ga, subjData$goassessSmryGad)
+gaMan_corr <- rcorr(subjData$ga, subjData$goassessSmryMan)
+gaMdd_corr <- rcorr(subjData$ga, subjData$goassessSmryDep)
+gaOcd_corr <- rcorr(subjData$ga, subjData$goassessSmryOcd)
+gaOdd_corr <- rcorr(subjData$ga, subjData$goassessSmryOdd)
+gaPan_corr <- rcorr(subjData$ga, subjData$goassessSmryPan)
+gaPs_corr <- rcorr(subjData$ga, subjData$goassessSmryPsychOverallRtg)
+gaPtd_corr <- rcorr(subjData$ga, subjData$goassessSmryPtd)
+gaSep_corr <- rcorr(subjData$ga, subjData$goassessSmrySep)
+gaSoc_corr <- rcorr(subjData$ga, subjData$goassessSmrySoc)
+gaSph_corr <- rcorr(subjData$ga, subjData$goassessSmryPhb)
+
+#Gestational age correlations with psychiatric symptoms
+gaOverallPsy_corr <- rcorr(subjData$ga, subjData$overall_psychopathology_4factorv2)
+
 ################################
 #### Mean differences in ga ####
 ################################
@@ -217,6 +242,34 @@ over18chiSq <- chisq.test(subjData$preterm, subjData$over18)
 #### TIME BETWEEN COG AND SCAN ####
 ###################################
 
-#cognitive testing came before scanning for all participants in this subset
-time <- data.NMF$ageAtScan1 - data.NMF$ageAtCnb1
-avgTime <- mean(time) #4.769784
+##Mean, median, and mode time elapsed between cnb and scan
+#Calculate time between cnb and scan for all subjects
+time <- subjData$ageAtScan1 - subjData$ageAtCnb1
+
+#mean
+time_mean <- mean(time)
+
+#median
+time_median <- median(time)
+
+#Define function for getting the mode
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+time_mode <- getmode(time)
+
+#########################################
+#### Percentages on psychiatric meds ####
+#########################################
+
+antiPsy <- mean(subjData$medclass_Antipsychotic)
+antiCon <- mean(subjData$medclass_Anticonvulsant)
+antiDep <- mean(subjData$medclass_Antidepressant)
+benzo <- mean(subjData$medclass_Benzodiazepine)
+stim <- mean(subjData$medclass_Stimulant)
+nonStimADHD <- mean(subjData$medclass_NonstimulantADHDmed)
+Lithium <- mean(subjData$medclass_Lithium)
+Other <- mean(subjData$medclass_Other)
+

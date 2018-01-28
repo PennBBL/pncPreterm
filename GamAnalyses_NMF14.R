@@ -3,7 +3,7 @@
 ##########################################
 
 #Load data
-data.NMF <- read.csv("/data/joy/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData_NMF14.csv", header=TRUE, na.strings = "NA")
+data.NMF <- read.csv("/data/jux/BBL/projects/pncPreterm/subjectData/n282_Prematurity_allData_NMF14.csv", header=TRUE, na.strings = "NA")
 
 #Load library
 library(mgcv)
@@ -11,7 +11,7 @@ library(mgcv)
 #Get NMF variable names
 nmfComponents <- names(data.NMF)[grep("Nmf14",names(data.NMF))]
 
-#Run gam models
+#Run gam models (gams will automatically exclude the 4 people missing medu1)
 NmfModels <- lapply(nmfComponents, function(x) {
   gam(substitute(i ~ s(age) + sex + medu1 + ga, list(i = as.name(x))), method="REML", data = data.NMF)
 })

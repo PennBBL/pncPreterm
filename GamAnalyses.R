@@ -3,7 +3,7 @@
 ##########################################
 
 #Load data
-data.NMF <- read.csv("/data/joy/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData.csv", header=TRUE, na.strings = "NA")
+data.NMF <- read.csv("/data/jux/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData.csv", header=TRUE, na.strings = "NA")
 
 #Load library
 library(mgcv)
