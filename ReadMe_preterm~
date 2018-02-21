@@ -10,15 +10,18 @@
    f. Define the white vs nonwhite groups
    g. Merge the data files
    h. Exclude based on healthExcludev2 and t1Exclude (and calculate how many are missing at each step)
-   i. Save the .csv file
-   j. Save the list of the bblids and scanids for the final sample (n=282)
-   k. Calculate how many were on psychiatric psychotropic medications at the time of scanning.
-   l. Exclude those on psychiatric psychotropic meds and save as a separate data file for sensitivity analyses.
+   i. Exclude those missing maternal level of education
+   j. Save the subject level data in a .csv file
+   k. Save the list of the bblids and scanids for the final sample (n=278)
+   l. Calculate how many were on psychiatric psychotropic medications at the time of scanning.
+   m. Exclude those on psychiatric psychotropic meds and save as a separate data file for sensitivity analyses.
 
 
 ###########################################
 #### NMF ANALYSES FOR PREMATURITY DATA ####
 ###########################################
+
+#NOTE: NMF used n=282 (because we hadn't decided to remove those missing medu yet)
 
 1. Look for missing data using the script, "FindMissingRavens.sh".
 2. Smooth the Ravens data (8mm FWHM) and save the filenames into text files for zipping the data using the script, "Smooth_Ravens.sh"
@@ -48,12 +51,12 @@
 12. Calculate reconstruction error:
    a. After running a range of components (2-30, evens), you need to calculate the reconstruction error to help you to determine the ideal number of components to use.
          ssh -Y kaczkura@cbica-cluster.uphs.upenn.edu
-               sudo -u pncnmf sudosh
+         sudo -u pncnmf sudosh
          cd /cbica/projects/pncNmf/n282_preterm/scripts
          matlab -nodesktop
          addpath('/sbia/sbiasfw/external/matlab/extras/nifti/20130306/')
          calcRecError
-   b. The script will run for a few minutes and then the reconstruction error figures will be saved as .png files in the scripts folder.
+   b. The script will run for a few minutes and then the reconstruction error figures will be saved as .png files in the figures folder.
    c. Move the gradient figures to chead (since sudo doesn't allow -Y to see figures):
       scp reconstructionError_preterm.png akaczkurkin@chead.uphs.upenn.edu:/data/joy/BBL/projects/pncPreterm/tablesFigures
       scp reconstructionErrorGradient_preterm.png akaczkurkin@chead.uphs.upenn.edu:/data/joy/BBL/projects/pncPreterm/tablesFigures
@@ -74,8 +77,18 @@
 16. Merge the NMF and subject data with the script on chead, "MergeNmfSubjData.R".
 17. Copy the .csv file to the local computer (for sharing with Rula)
       sftp chead
-      get /data/joy/BBL/projects/pncPreterm/subjectData/n282_Prematurity_allData.csv
+      get /data/joy/BBL/projects/pncPreterm/subjectData/n278_Prematurity_allData.csv
 18. Run the gam models and FDR correct the p-values using the script "GamAnalyses.R".
+    a. There are also various sensitivity analysis scripts such as:
+       1. GamAnalyses_AvgRating.R
+       2. GamAnalyses_cog.R
+       3. GamAnalyses_GroupsNoEarly.R
+       4. GamAnalyses_Groups.R
+       5. GamAnalyses_jlf.R
+       6. GamAnalyses_NMF14.R
+       7. GamAnalyses_NoMeds.R
+       8. GamAnalyses_removeExtreme.R
+       9. GamAnalyses_withRace.R
 
 
 ######################################################
@@ -226,10 +239,7 @@ fslmerge -t /data/joy/BBL/projects/pncPreterm/results/n282_26NmfComponentsMerged
 ############################
 
 1. To run mediation analyses:
-
-
-
-Use the script "MediationAnalyses.R" to run mediation with bootstrapped confidence intervals in R.
+   a. We did this in SPSS
 
 
 #######################################
@@ -246,7 +256,8 @@ Use the script "MediationAnalyses.R" to run mediation with bootstrapped confiden
 8. Blending options -> Click on Drop Shadow checkbox under Styles, also click on the word "Drop Shadow"" for options page to open
 9. Distance = 100, Spread = 33, Size = 100; Okay to apply changes
 10. Layer -> Flatten image
-11. File -> Save as a .png file
+11. Select the crop tool and crop closer to the brain
+12. File -> Save as a .png file
 
 
 #####################################

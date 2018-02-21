@@ -295,3 +295,65 @@ fslmerge -t /data/joy/BBL/projects/pncPreterm/results/n282_26NmfComponentsMerged
 11. Save as an .ai file
 12. Also can "Save a copy" for a pdf
 
+
+####################################
+#### MAKE JLF FIGURE IN ITK-SNAP ####
+####################################
+
+1. Use the script "GamAnalyses_jlf.R" to:
+   a. Load the subject data
+   b. Run GAM models
+   c. Pull the FDR-corrected signficant ROI names, p values, and t values into a dataframe
+   d. Save as a .csv file
+
+2. Clone github folder with scripts
+   cd /data/jux/BBL/projects/pncPreterm/tablesFigures
+   git clone git@github.com:PennBBL/jlfVisualizer.git
+
+3. Load the functions in R (you don't need to change anything in this script)
+   cd /data/jux/BBL/projects/pncPreterm/tablesFigures/jlfVisualizer/scripts/Rfunction
+   R
+   source("makeITKSnapColorTable.R")
+
+4. Load ROI names, p values, and t values   
+   x<-read.csv("/data/jux/BBL/projects/pncPreterm/subjectData/pncPreterm_JLF_ROIs.csv", header=TRUE)
+   
+5. Create the color table and key (tells you which colors go with which ROIs)
+   NOTE: These will be saved here: /data/jux/BBL/projects/pncPreterm/subjectData and are named pncPreterm_jlf-ColorTable.txt and pncPreterm_jlf-KEY.csv
+   writeColorTableandKey(x, 3, "pncPreterm_jlf", minTmp=c(-1, 0), maxTmp=c(min(x[,3]), max(x[,3])))
+
+6. Now make the color coordinated image (the output is "outputImage.nii.gz" in /bash) and move it to a folder of its own (/JLF_lateral)
+   cd /data/jux/BBL/projects/pncPreterm/tablesFigures/jlfVisualizer/scripts/bash
+   ./makeZScoreJLFPNCTemplateImage.sh /data/jux/BBL/projects/pncPreterm/tablesFigures/jlfVisualizer/scripts/Rfunction/pncPreterm_jlf-KEY.csv 4 1 Cortical
+
+7. Now open up the image in itk snap (you may have to downgrade to XQuartz 2.7.8 to get this to work)
+   ssh -Y akaczkurkin@chead.uphs.upenn.edu
+   cd /data/jux/BBL/projects/pncPreterm/tablesFigures/jlfVisualizer/scripts/bash/JLF_lateral
+   itksnap -g ../../../data/pnc_template_brain.nii.gz -s outputImage.nii.gz -l /data/jux/BBL/projects/pncPreterm/tablesFigures/jlfVisualizer/scripts/Rfunction/pncPreterm_jlf-ColorTable.txt
+
+8. Change the appearance of the brain
+   a. In ITK-SNAP, click on Segmentation, Label Editor...
+   b. In the Available Labels box on the left, scroll to the bottom where it says "Label Nonsense"
+   c. Click on Label Nonsense and move the Opacity slide bar all the way to the right (Opacity: 255)
+   d. Click Close
+   e. On the main console window, click on Update in the lower left
+
+9. Take screen shot of image
+   a. Click and drag the image to the desired position
+   b. Remove the crosshairs
+      1. Go to Tools -> Preferences -> Appearance -> 3D View -> Crosshair -> uncheck Visible -> Okay
+   b. Click on the camera icon on the lower part of the main console windoe (near Update). 
+   c. Name the screenshot and save (it will be saved in /data/jux/BBL/projects/pncPreterm/tablesFigures/jlfVisualizer/data)
+
+10. To make an medial image of just one hemisphere:
+    a. First create new JLF cortical lookup files with just one hemisphere or the other
+       cd /data/jux/BBL/projects/pncPreterm/tablesFigures/jlfVisualizer/data
+       cat jlf_lookupCortical.csv | grep R_ > jlf_lookupCorticalR.csv 
+       cat jlf_lookupCortical.csv | grep L_ > jlf_lookupCorticalL.csv
+    b. Make the color coordinated image (the output is "outputImage.nii.gz" in /bash and will overwrite prior outputImages)
+       cd /data/jux/BBL/projects/pncPreterm/tablesFigures/jlfVisualizer/scripts/bash/JLF_medial_R
+       ./makeZScoreJLFPNCTemplateImage.sh /data/jux/BBL/projects/pncPreterm/tablesFigures/jlfVisualizer/scripts/Rfunction/pncPreterm_jlf-KEY.csv 4 1 CorticalR
+       cd /data/jux/BBL/projects/pncPreterm/tablesFigures/jlfVisualizer/scripts/bash/JLF_medial_L
+       ./makeZScoreJLFPNCTemplateImage.sh /data/jux/BBL/projects/pncPreterm/tablesFigures/jlfVisualizer/scripts/Rfunction/pncPreterm_jlf-KEY.csv 4 1 CorticalL
+    c. Open the image in ITK-SNAP, change the brain to opaque, and take a screen shot same as before.
+
